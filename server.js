@@ -45,12 +45,10 @@ app.post('/webhooks', clerkWebhooks)
 // Setup Sentry error handler
 Sentry.setupExpressErrorHandler(app);
 
-export default app
+// Start the server
+const PORT = process.env.PORT || 5000
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+})
 
-// For local development, start the server
-if (process.env.NODE_ENV !== 'production') {
-    const PORT = process.env.PORT || 5000
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-    })
-}
+export default app
