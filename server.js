@@ -45,7 +45,6 @@ app.post('/webhooks', clerkWebhooks)
 // Setup Sentry error handler
 Sentry.setupExpressErrorHandler(app);
 
-// For Vercel, export the app
 export default app
 
 // For local development, start the server
