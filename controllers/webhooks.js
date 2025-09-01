@@ -28,12 +28,21 @@ export const clerkWebhooks = async (req, res) => {
 
                 const userData = {
                     _id: data.id,
+                    clerkId: data.id, // Add clerkId field
                     email: data.email_addresses[0].email_address,
                     name: data.first_name + " " + data.last_name,
                     image: data.image_url,
                     resume: ''
                 }
                 console.log("✅ Parsed User Data to Save:", userData);
+                
+                // Check if user already exists to prevent duplicates
+                const existingUser = await User.findById(data.id);
+                if (existingUser) {
+                    console.log("🔄 User already exists, skipping creation:", data.id);
+                    res.json({ success: true, message: 'User already exists' });
+                    break;
+                }
                 
                 const newUser = await User.create(userData)
                 console.log("🎉 User successfully created in database:", newUser._id);
@@ -43,6 +52,7 @@ export const clerkWebhooks = async (req, res) => {
 
             case 'user.updated': {
                 const userData = {
+                    clerkId: data.id, // Add clerkId field
                     email: data.email_addresses[0].email_address,
                     name: data.first_name + " " + data.last_name,
                     image: data.image_url,
