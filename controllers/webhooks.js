@@ -30,9 +30,11 @@ export const clerkWebhooks = async (req, res) => {
                     image: data.image_url,
                     resume: ''
                 }
-                 console.log("✅ Parsed User Data to Save:", userData);
-                await User.create(userData)
-                res.json({})
+                console.log("✅ Parsed User Data to Save:", userData);
+                
+                const newUser = await User.create(userData)
+                console.log("🎉 User successfully created in database:", newUser._id);
+                res.json({ success: true, message: 'User created successfully' })
                 break;
             }
 
@@ -42,16 +44,19 @@ export const clerkWebhooks = async (req, res) => {
                     name: data.first_name + " " + data.last_name,
                     image: data.image_url,
                 }
-                 console.log("✅ Parsed User Data for Update:", userData);
-                await User.findByIdAndUpdate(data.id, userData)
-                res.json({})
+                console.log("✅ Parsed User Data for Update:", userData);
+                
+                const updatedUser = await User.findByIdAndUpdate(data.id, userData, { new: true })
+                console.log("🔄 User successfully updated in database:", updatedUser?._id);
+                res.json({ success: true, message: 'User updated successfully' })
                 break;
             }
 
             case 'user.deleted': {
                 console.log("📌 User Deleted Event ID:", data.id);
-                await User.findByIdAndDelete(data.id)
-                res.json({})
+                const deletedUser = await User.findByIdAndDelete(data.id)
+                console.log("🗑️ User successfully deleted from database:", deletedUser?._id);
+                res.json({ success: true, message: 'User deleted successfully' })
                 break;
             }
             default:
@@ -59,6 +64,8 @@ export const clerkWebhooks = async (req, res) => {
         }
 
     } catch (error) {
-        res.json({ success: false, message: error.message })
+        console.error("❌ Webhook Error:", error.message);
+        console.error("❌ Webhook Error Stack:", error.stack);
+        res.status(400).json({ success: false, message: error.message })
     }
 }

@@ -34,14 +34,16 @@ const connectDB = async () => {
             retryReads: true,
             // Important for serverless
             bufferCommands: false,
-            bufferMaxEntries: 0,
         }
 
         cached.promise = mongoose.connect(mongoUri, opts).then((mongoose) => {
             console.log('✅ New database connection established')
+            console.log('📊 Database:', mongoose.connection.db.databaseName)
+            console.log('🌐 Host:', mongoose.connection.host)
             return mongoose
         }).catch((error) => {
             console.error('❌ Database connection failed:', error.message)
+            console.error('❌ Database error details:', error)
             cached.promise = null
             throw error
         })
