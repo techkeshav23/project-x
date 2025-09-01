@@ -1,61 +1,38 @@
+// Import mongoose library for MongoDB connection
 import mongoose from "mongoose";
 
-let cached = global.mongoose
-
-if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null }
-}
-
-// Function to connect to the MongoDB database with connection caching for serverless
+// Simple function to connect to MongoDB database
 const connectDB = async () => {
-    // If we have a cached connection, use it
-    if (cached.conn) {
-        console.log('🔄 Using cached database connection')
-        return cached.conn
-    }
-
-    // If we don't have a promise, create one
-    if (!cached.promise) {
-        const mongoUri = process.env.MONGODB_URI
-        
-        if (!mongoUri) {
-            throw new Error('MONGODB_URI environment variable is not defined')
-        }
-
-        console.log('🔗 Creating new database connection...')
-
-        const opts = {
-            dbName: 'test',
-            maxPoolSize: 10,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-            family: 4, // Use IPv4
-            retryWrites: true,
-            retryReads: true,
-            // Important for serverless
-            bufferCommands: false,
-        }
-
-        cached.promise = mongoose.connect(mongoUri, opts).then((mongoose) => {
-            console.log('✅ New database connection established')
-            console.log('📊 Database:', mongoose.connection.db.databaseName)
-            console.log('🌐 Host:', mongoose.connection.host)
-            return mongoose
-        }).catch((error) => {
-            console.error('❌ Database connection failed:', error.message)
-            console.error('❌ Database error details:', error)
-            cached.promise = null
-            throw error
-        })
-    }
-
     try {
-        cached.conn = await cached.promise
-        return cached.conn
-    } catch (e) {
-        cached.promise = null
-        throw e
-    }
-}
+        // Check if already connected to avoid multiple connections
+        if (mongoose.connection.readyState === 1) {
+            console.log('✅ Already connected to MongoDB');
+            return;
+        }
 
-export default connectDB
+        // Get MongoDB connection string from environment variables
+        const mongoUri = process.env.MONGODB_URI;
+        
+        // Check if MongoDB URI exists
+        if (!mongoUri) {
+            throw new Error('❌ MONGODB_URI not found in environment variables');
+        }
+
+        console.log('🔗 Connecting to MongoDB...');
+
+        // Connect to MongoDB with simple options
+        await mongoose.connect(mongoUri, {
+            dbName: 'test',  // Database name
+        });
+
+        console.log('✅ Connected to MongoDB successfully!');
+        console.log('📊 Database:', mongoose.connection.db.databaseName);
+        
+    } catch (error) {
+        console.error('❌ MongoDB connection failed:', error.message);
+        throw error;
+    }
+};
+
+// Export the connection function
+export default connectDB;
